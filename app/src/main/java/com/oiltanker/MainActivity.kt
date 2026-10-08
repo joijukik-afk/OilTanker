@@ -267,7 +267,7 @@ private class GameWorld(
     var frame by mutableStateOf(0)
     var score by mutableStateOf(0)
     var lives by mutableStateOf(MAX_LIVES)
-    var distance by mutableStateOf(0)
+    var distance by mutableStateOf(0f)
     var barrels by mutableStateOf(0)
     var shieldTime by mutableStateOf(0f)
     var magnetTime by mutableStateOf(0f)
@@ -333,7 +333,7 @@ private class GameWorld(
         score = 0
         scoreF = 0f
         lives = MAX_LIVES
-        distance = 0
+        distance = 0f
         barrels = 0
         shieldTime = 0f
         magnetTime = 0f

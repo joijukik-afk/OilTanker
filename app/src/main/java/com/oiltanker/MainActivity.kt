@@ -1958,7 +1958,11 @@ private fun GameScreen(world: GameWorld, onPause: () -> Unit) {
             }
     ) {
         Canvas(Modifier.fillMaxSize()) {
-            world.frame.let { world.drawAll() }
+            world.frame.let {
+                with(world) {
+                    drawAll()
+                }
+            }
         }
 
         HudBar(world = world, onPause = onPause)

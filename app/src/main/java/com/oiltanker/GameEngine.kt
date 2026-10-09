@@ -294,8 +294,6 @@ class V2GameWorld(
     private var dayNightLerp = 1f
     private var dayNightIdx = 0
 
-    private var planeFireTimer = 0f
-
     // ------------------------------------------------------------------
     //  Layout helpers
     // ------------------------------------------------------------------
@@ -662,7 +660,7 @@ class V2GameWorld(
                 -viewH * 0.055f - Random.nextFloat() * viewH * 0.03f,
                 1.4f, 1.4f,
                 viewW * 0.010f + Random.nextFloat() * viewW * 0.006f,
-                0x889E9E9E.toInt()
+                0x889E9E9EL
             )
         )
         capParticles()
@@ -715,7 +713,13 @@ class V2GameWorld(
         while (particles.size > 420) particles.removeAt(0)
     }
 
-    private fun burst(x: Float, y: Float, radius: Float, colorA: Long = 0xFFFFB300, colorB: Long = 0xFFFF5722) {
+    private fun burst(
+        x: Float,
+        y: Float,
+        radius: Float,
+        colorA: Long = 0xFFFFB300L,
+        colorB: Long = 0xFFFF5722L
+    ) {
         for (i in 0 until 22) {
             val a = Random.nextFloat() * PI.toFloat() * 2f
             val sp = radius * (0.8f + Random.nextFloat() * 2.4f)
@@ -725,7 +729,7 @@ class V2GameWorld(
                     cos(a) * sp, sin(a) * sp,
                     0.55f + Random.nextFloat() * 0.5f, 1.05f,
                     radius * (0.10f + Random.nextFloat() * 0.16f),
-                    (if (i % 2 == 0) colorA else colorB).toInt()
+                    if (i % 2 == 0) colorA else colorB
                 )
             )
         }
@@ -860,7 +864,7 @@ class V2GameWorld(
             if (e.flash > 0f) e.flash = max(0f, e.flash - dt * 3f)
 
             // fire at plane
-            if (!e.x.let { it < -viewW * 0.2f || it > viewW * 1.2f }) {
+            if (!(e.x < -viewW * 0.2f || e.x > viewW * 1.2f)) {
                 e.fireTimer -= dt
                 if (e.fireTimer <= 0f) {
                     e.fireTimer = 1.6f + Random.nextFloat() * 1.6f
@@ -927,7 +931,6 @@ class V2GameWorld(
     private fun fireBossAttack(b: V2Boss) {
         when (b.attackPattern) {
             0 -> {
-                // single shot at player
                 val originX = b.x - b.w * 0.5f
                 val originY = b.y
                 val tx = if (fighterMode) planeCX else shipCX
@@ -939,7 +942,6 @@ class V2GameWorld(
                 bullets.add(V2Bullet(originX, originY, dx / len * sp, dy / len * sp, viewH * 0.018f, true))
             }
             1 -> {
-                // spread of 3
                 val originX = b.x - b.w * 0.5f
                 val originY = b.y
                 for (i in -1..1) {
@@ -949,7 +951,6 @@ class V2GameWorld(
                 }
             }
             else -> {
-                // rapid fire small bullets
                 for (i in 0 until 3) {
                     val originX = b.x - b.w * 0.5f
                     val originY = b.y + (i - 1) * b.h * 0.18f
@@ -1202,14 +1203,12 @@ class V2GameWorld(
 
         when (chapter) {
             Chapter.CH1, Chapter.CH2 -> {
-                // transition to CH3 (fighter mode)
                 showLine(Story.leviathanDefeat.first())
                 chapterSwitching = true
                 setChapter(Chapter.CH3)
                 chapterSwitching = false
                 showLine(Story.krakenAttack.first())
                 fighterMode = true
-                // clear water obstacles
                 obstacles.clear()
                 bullets.clear()
                 kills = 0

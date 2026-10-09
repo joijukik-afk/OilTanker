@@ -148,7 +148,6 @@ private fun OilTankerAppV2() {
                 )
 
                 V2Screen.PAUSED -> {
-                    // Static (frozen) game frame behind pause overlay
                     Box(
                         Modifier
                             .fillMaxSize()
@@ -218,17 +217,25 @@ private fun V2GameScreen(
     onPause: () -> Unit,
     onEnd: () -> Unit
 ) {
-    // 60 FPS game loop
+    // 60 FPS locked game loop (optimized: caps dt to avoid lag spikes)
     LaunchedEffect(Unit) {
         var last = 0L
+        var acc = 0L
+        val frameNs = 16_666_666L
         while (isActive) {
             withFrameNanos { now ->
-                if (last != 0L) {
-                    val dt = (now - last) / 1_000_000_000f
-                    world.update(dt)
+                if (last == 0L) {
+                    last = now
+                    return@withFrameNanos
                 }
+                acc += (now - last)
                 last = now
-                world.frame++
+                if (acc >= frameNs) {
+                    val dt = acc / 1_000_000_000f
+                    acc = 0L
+                    world.update(dt.coerceAtMost(0.033f))
+                    world.frame++
+                }
             }
         }
     }

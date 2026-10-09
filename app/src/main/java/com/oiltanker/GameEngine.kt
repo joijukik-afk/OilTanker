@@ -381,10 +381,10 @@ class V2GameWorld(
         bossHp = 0
         bossMaxHp = 0
 
-        setChapter(Chapter.CH1)
+        changeChapter(Chapter.CH1)
     }
 
-    fun setChapter(c: Chapter) {
+    fun changeChapter(c: Chapter) {
         chapter = c
         missionText = Story.missionText(
             when (c) {
@@ -467,7 +467,6 @@ class V2GameWorld(
         val dt = dtRaw.coerceIn(0f, 0.05f)
         time += dt
 
-        // dialogue timer
         if (dialogueVisible) {
             dialogueTimer -= dt
             if (dialogueTimer <= 0f) {
@@ -476,7 +475,6 @@ class V2GameWorld(
             }
         }
 
-        // damage flash
         if (redFlash > 0f) redFlash = max(0f, redFlash - dt * 1.5f)
         if (whiteFlash > 0f) whiteFlash = max(0f, whiteFlash - dt * 2.5f)
 
@@ -485,7 +483,6 @@ class V2GameWorld(
             return
         }
 
-        // timers
         if (ship.invuln > 0f) ship.invuln = max(0f, ship.invuln - dt)
         if (plane.invuln > 0f) plane.invuln = max(0f, plane.invuln - dt)
         if (ship.shield > 0f) ship.shield = max(0f, ship.shield - dt)
@@ -494,14 +491,12 @@ class V2GameWorld(
         if (plane.fireCd > 0f) plane.fireCd = max(0f, plane.fireCd - dt)
         if (plane.missileCd > 0f) plane.missileCd = max(0f, plane.missileCd - dt)
 
-        // movement lerp
         if (fighterMode) {
             plane.yFrac += (plane.targetYFrac - plane.yFrac) * min(1f, dt * 10f)
         } else {
             ship.yFrac += (ship.targetYFrac - ship.yFrac) * min(1f, dt * 9f)
         }
 
-        // scroll & score
         val mps = metersPerSec()
         if (!chapterSwitching) {
             distance += mps * dt
@@ -544,7 +539,6 @@ class V2GameWorld(
     //  CHAPTERS
     // ------------------------------------------------------------------
     private fun updateChapter1(dt: Float, mps: Float) {
-        // spawn obstacles
         if (boss == null) {
             spawnTimer -= dt
             if (spawnTimer <= 0f) {
@@ -554,14 +548,12 @@ class V2GameWorld(
             }
         }
 
-        // spawn pickups
         pickupTimer -= dt
         if (pickupTimer <= 0f) {
             spawnPickup()
             pickupTimer = 2.2f + Random.nextFloat() * 3.0f
         }
 
-        // smoke
         if (!fighterMode) {
             smokeTimer -= dt
             if (smokeTimer <= 0f) {
@@ -570,7 +562,6 @@ class V2GameWorld(
             }
         }
 
-        // radio chatter
         val step = floor(distance / 150f).toInt()
         if (step > chatterMeterStep && chatterIndex < Story.radioChatter.size) {
             chatterMeterStep = step
@@ -578,7 +569,6 @@ class V2GameWorld(
             chatterIndex += 1
         }
 
-        // boss trigger at end of CH1 (Leviathan)
         if (distance >= CH1_TARGET_METERS && boss == null && !chapterSwitching) {
             spawnBoss(BossType.LEVIATHAN)
             showLine(Story.leviathanIntro.first())
@@ -587,22 +577,18 @@ class V2GameWorld(
     }
 
     private fun updateChapter2(dt: Float, mps: Float) {
-        // only boss fight
         if (boss == null && !chapterSwitching) {
-            // if boss defeated, move to next chapter
             chapterSwitching = true
         }
     }
 
     private fun updateChapter3(dt: Float, mps: Float) {
-        // sky enemies
         skySpawnTimer -= dt
         if (skySpawnTimer <= 0f) {
             spawnSkyEnemy()
             skySpawnTimer = (0.9f - (kills * 0.015f)).coerceAtLeast(0.4f) + Random.nextFloat() * 0.6f
         }
 
-        // spawn some pickups
         pickupTimer -= dt
         if (pickupTimer <= 0f) {
             spawnPickup()
@@ -660,7 +646,7 @@ class V2GameWorld(
                 -viewH * 0.055f - Random.nextFloat() * viewH * 0.03f,
                 1.4f, 1.4f,
                 viewW * 0.010f + Random.nextFloat() * viewW * 0.006f,
-                0x889E9E9EL
+                0x889E9E9E
             )
         )
         capParticles()
@@ -713,13 +699,7 @@ class V2GameWorld(
         while (particles.size > 420) particles.removeAt(0)
     }
 
-    private fun burst(
-        x: Float,
-        y: Float,
-        radius: Float,
-        colorA: Long = 0xFFFFB300L,
-        colorB: Long = 0xFFFF5722L
-    ) {
+    private fun burst(x: Float, y: Float, radius: Float) {
         for (i in 0 until 22) {
             val a = Random.nextFloat() * PI.toFloat() * 2f
             val sp = radius * (0.8f + Random.nextFloat() * 2.4f)
@@ -729,7 +709,7 @@ class V2GameWorld(
                     cos(a) * sp, sin(a) * sp,
                     0.55f + Random.nextFloat() * 0.5f, 1.05f,
                     radius * (0.10f + Random.nextFloat() * 0.16f),
-                    if (i % 2 == 0) colorA else colorB
+                    if (i % 2 == 0) 0xFFFFB300 else 0xFFFF5722
                 )
             )
         }
@@ -863,7 +843,6 @@ class V2GameWorld(
             }
             if (e.flash > 0f) e.flash = max(0f, e.flash - dt * 3f)
 
-            // fire at plane
             if (!(e.x < -viewW * 0.2f || e.x > viewW * 1.2f)) {
                 e.fireTimer -= dt
                 if (e.fireTimer <= 0f) {
@@ -1205,7 +1184,7 @@ class V2GameWorld(
             Chapter.CH1, Chapter.CH2 -> {
                 showLine(Story.leviathanDefeat.first())
                 chapterSwitching = true
-                setChapter(Chapter.CH3)
+                changeChapter(Chapter.CH3)
                 chapterSwitching = false
                 showLine(Story.krakenAttack.first())
                 fighterMode = true
@@ -1219,13 +1198,13 @@ class V2GameWorld(
 
     private fun completeChapter3() {
         chapterSwitching = true
-        setChapter(Chapter.VICTORY)
+        changeChapter(Chapter.VICTORY)
         showLine(Story.outro.first())
     }
 
     private fun triggerGameOver() {
         over = true
-        setChapter(Chapter.DEFEAT)
+        changeChapter(Chapter.DEFEAT)
         onGameOver?.invoke()
     }
 
